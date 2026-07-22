@@ -1,0 +1,16 @@
+{
+  "name": "PresencIA - Control de asistencia facial",
+  "short_name": "PresencIA",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0F1720",
+  "theme_color": "#0F1720",
+  "orientation": "portrait",
+  "author": "Wilmar Colorado Arenas",
+  "copyright": "© 2026 Wilmar Colorado Arenas. Todos los derechos reservados.",
+  "license_notice": "Software propietario, entregado como servicio bajo licencia y hospedado exclusivamente por Wilmar Colorado Arenas. Prohibido su uso, copia, distribución, modificación o ingeniería inversa sin autorización previa y por escrito. El acceso de cada empresa cliente se controla mediante usuario y contraseña, y puede ser revocado en cualquier momento por el propietario.",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

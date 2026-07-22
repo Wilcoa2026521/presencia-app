@@ -1,0 +1,269 @@
+<!--
+  PRESENCIA — Control de asistencia con reconocimiento facial
+  Propiedad de: Wilmar Colorado Arenas
+  © 2026 Wilmar Colorado Arenas. Todos los derechos reservados.
+
+  Software entregado como servicio bajo licencia. El código de esta
+  aplicación es hospedado y administrado exclusivamente por el propietario;
+  los clientes acceden mediante credenciales (usuario/contraseña) y no
+  reciben ni deben distribuir estos archivos. Queda prohibida su copia,
+  distribución, modificación, ingeniería inversa o explotación comercial
+  sin autorización previa y por escrito del autor.
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F1720">
+<title>PresencIA · Control de asistencia facial</title>
+<link rel="icon" type="image/png" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1720;
+    --surface:#16202B;
+    --surface-2:#1E2A37;
+    --border:#28394A;
+    --text:#F2F5F7;
+    --text-muted:#8FA1AF;
+    --accent-entrada:#34D399;
+    --accent-entrada-dim:#1C4A3B;
+    --accent-salida:#F5A623;
+    --accent-salida-dim:#4A3A16;
+    --accent-scan:#5EEAD4;
+    --danger:#F0555A;
+    --radius-lg:24px;
+    --radius-md:16px;
+    --radius-sm:10px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 50% -10%, #1B2836 0%, #0F1720 55%);
+    color:var(--text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior:none;
+  }
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    padding:0 0 90px 0;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 22px 10px 22px;
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; }
+  .brand .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--accent-scan);
+    text-transform:uppercase;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .brand .name{ font-family:var(--font-display); font-weight:700; font-size:22px; letter-spacing:-0.01em; }
+  .clock{
+    font-family:var(--font-mono); font-weight:700; font-size:20px; color:var(--text);
+    letter-spacing:.03em; font-variant-numeric:tabular-nums;
+  }
+  .clock .date{
+    display:block; font-family:var(--font-body); font-weight:500; font-size:11px;
+    color:var(--text-muted); text-align:right; margin-top:2px;
+  }
+  .view{ display:none; padding:0 22px; flex:1; flex-direction:column;}
+  .view.active{ display:flex; }
+  .scan-wrap{ display:flex; flex-direction:column; align-items:center; margin-top:12px; }
+  .ring{ position:relative; width:250px; height:250px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:8px; }
+  .ring::before{
+    content:""; position:absolute; inset:0; border-radius:50%; padding:3px;
+    background:conic-gradient(from 0deg, var(--accent-scan), transparent 40%, transparent 60%, var(--accent-scan));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: spin 2.4s linear infinite; opacity:.85;
+  }
+  .ring.idle::before{ animation-play-state: paused; opacity:.25; background:conic-gradient(from 0deg, var(--text-muted), transparent 40%, transparent 60%, var(--text-muted));}
+  .ring.success::before{ background:conic-gradient(from 0deg, var(--accent-entrada), var(--accent-entrada)); animation:none; opacity:1;}
+  .ring.warn::before{ background:conic-gradient(from 0deg, var(--accent-salida), var(--accent-salida)); animation:none; opacity:1;}
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+  video{ width:100%; height:100%; object-fit:cover; border-radius:50%; background:#0A1119; transform:scaleX(-1); }
+  canvas.overlay{ position:absolute; inset:8px; border-radius:50%; pointer-events:none; transform:scaleX(-1); }
+  .status-title{ font-family:var(--font-display); font-weight:700; font-size:19px; margin-top:22px; text-align:center; min-height:26px; }
+  .status-sub{ font-family:var(--font-mono); font-size:13px; color:var(--text-muted); margin-top:4px; text-align:center; min-height:18px; }
+  .tag{ display:inline-flex; align-items:center; gap:6px; margin-top:14px; padding:6px 14px; border-radius:999px; font-family:var(--font-mono); font-size:12px; font-weight:700; letter-spacing:.04em; }
+  .tag.entrada{ background:var(--accent-entrada-dim); color:var(--accent-entrada); }
+  .tag.salida{ background:var(--accent-salida-dim); color:var(--accent-salida); }
+  .section-label{ font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-muted); margin:30px 0 10px 2px; }
+  .activity-item{ display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:8px; }
+  .activity-item .who{ font-weight:600; font-size:14px; }
+  .activity-item .when{ font-family:var(--font-mono); font-size:12px; color:var(--text-muted); }
+  .empty-hint{ color:var(--text-muted); font-size:13px; text-align:center; padding:18px 10px; border:1px dashed var(--border); border-radius:var(--radius-sm); }
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px; margin-bottom:16px; }
+  .card h3{ font-family:var(--font-display); font-size:15px; margin:0 0 12px 0; }
+  label{ display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-family:var(--font-mono); letter-spacing:.03em; }
+  input[type=text], input[type=password], input[type=url]{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:11px 12px; border-radius:var(--radius-sm); font-size:14px; font-family:var(--font-body); margin-bottom:12px;
+  }
+  input:focus{ outline:2px solid var(--accent-scan); outline-offset:1px; }
+  button{ font-family:var(--font-body); font-weight:600; font-size:14px; border:none; border-radius:var(--radius-sm); padding:12px 16px; cursor:pointer; width:100%; }
+  .btn-primary{ background:var(--accent-scan); color:#04201C; }
+  .btn-secondary{ background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  .btn-danger{ background:transparent; color:var(--danger); border:1px solid rgba(240,85,90,.4); width:auto; padding:8px 12px; font-size:12px;}
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row > button{ flex:1; }
+  .employee-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+  .employee-row:last-child{ border-bottom:none; }
+  .employee-row .name{ font-weight:600; font-size:14px; }
+  .employee-row .meta{ font-family:var(--font-mono); font-size:11px; color:var(--text-muted); }
+  .capture-dots{ display:flex; gap:6px; justify-content:center; margin:10px 0; }
+  .capture-dots span{ width:8px; height:8px; border-radius:50%; background:var(--border); }
+  .capture-dots span.done{ background:var(--accent-entrada); }
+  .bottomnav{
+    position:fixed; left:0; right:0; bottom:0; max-width:480px; margin:0 auto; display:flex;
+    background:rgba(22,32,43,.92); backdrop-filter:blur(10px); border-top:1px solid var(--border);
+    padding:10px 22px calc(10px + env(safe-area-inset-bottom));
+  }
+  .navbtn{ flex:1; background:none; border:none; color:var(--text-muted); font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px; }
+  .navbtn.active{ color:var(--accent-scan); }
+  .navbtn svg{ width:20px; height:20px; }
+  .overlay-screen{ position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; justify-content:center; padding:26px; z-index:50; overflow-y:auto; }
+  .overlay-screen.hidden{ display:none; }
+  .lock-icon{ font-size:40px; text-align:center; margin-bottom:14px; }
+  .loading-line{ display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:14px; color:var(--text-muted); font-family:var(--font-mono); font-size:13px; }
+  .spinner{ width:34px; height:34px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--accent-scan); animation:spin 1s linear infinite; }
+  .toast{ position:fixed; left:50%; bottom:100px; transform:translateX(-50%); background:var(--surface-2); border:1px solid var(--border); padding:10px 16px; border-radius:999px; font-size:13px; opacity:0; transition:opacity .25s ease; z-index:60; max-width:90%; text-align:center; }
+  .toast.show{ opacity:1; }
+  .legal-footer{
+    position:fixed; left:0; right:0; bottom:64px; max-width:480px; margin:0 auto; text-align:center;
+    font-family:var(--font-mono); font-size:9px; letter-spacing:.02em; color:var(--text-muted); opacity:.55;
+    padding:4px 22px; pointer-events:none; z-index:10;
+  }
+  .license-terms{ font-size:11px; color:var(--text-muted); line-height:1.5; margin:14px 0 6px 0; text-align:left; border-top:1px solid var(--border); padding-top:14px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="eyebrow" id="topEyebrow">Control horario</span>
+      <span class="name">PresencIA</span>
+    </div>
+    <div class="clock" id="clock">--:--:--<span class="date" id="clockDate">-- --- ----</span></div>
+  </div>
+
+  <div class="view active" id="view-fichar">
+    <div class="scan-wrap">
+      <div class="ring idle" id="ring">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas class="overlay" id="overlay"></canvas>
+      </div>
+      <div class="status-title" id="statusTitle">Colocá tu rostro frente a la cámara</div>
+      <div class="status-sub" id="statusSub">Iniciando cámara…</div>
+      <div id="tagWrap"></div>
+    </div>
+    <div class="section-label">Últimos movimientos</div>
+    <div id="activityList"><div class="empty-hint">Todavía no hay marcas registradas hoy.</div></div>
+  </div>
+
+  <div class="view" id="view-admin">
+    <div class="section-label" style="margin-top:22px;">Tu cuenta</div>
+    <div class="card">
+      <h3 id="empresaTitle">Empresa</h3>
+      <div class="status-sub" style="text-align:left; margin-bottom:12px;">Sesión iniciada. Los datos de esta cuenta están separados de los de cualquier otra empresa.</div>
+      <button class="btn-secondary" id="logoutBtn">Cerrar sesión</button>
+    </div>
+
+    <div class="section-label">Agregar empleado</div>
+    <div class="card">
+      <label for="empName">Nombre completo</label>
+      <input type="text" id="empName" placeholder="Ej: Ana Rodríguez">
+      <div class="capture-dots" id="captureDots"><span></span><span></span><span></span></div>
+      <div class="status-sub" id="enrollStatus" style="margin-bottom:10px;">Escribí el nombre y capturá el rostro</div>
+      <button class="btn-secondary" id="captureBtn">Capturar rostro (3 tomas)</button>
+      <div style="height:10px;"></div>
+      <button class="btn-primary" id="saveEmpBtn" disabled>Guardar empleado</button>
+    </div>
+
+    <div class="section-label">Empleados registrados <span id="empCount"></span></div>
+    <div class="card" id="employeeListCard"><div class="empty-hint">Sin empleados todavía.</div></div>
+
+    <div class="section-label">Ajustes</div>
+    <div class="card">
+      <label>Umbral de confianza (más bajo = más estricto)</label>
+      <input type="text" id="threshold" value="0.5">
+      <div class="btn-row">
+        <button class="btn-secondary" id="refreshBtn">Recargar empleados</button>
+        <button class="btn-secondary" id="lockBtn">Bloquear panel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="legal-footer">PresencIA © 2026 Wilmar Colorado Arenas · Servicio bajo licencia · Prohibida su copia o distribución sin autorización escrita</div>
+
+  <div class="bottomnav">
+    <button class="navbtn active" data-view="fichar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      Fichar
+    </button>
+    <button class="navbtn" data-view="admin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.2.63.77 1.05 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Admin
+    </button>
+  </div>
+</div>
+
+<div class="overlay-screen" id="loginScreen">
+  <div class="lock-icon">🔐</div>
+  <div class="status-title" style="margin-bottom:6px;">Iniciá sesión</div>
+  <div class="status-sub" style="margin-bottom:18px;">Ingresá con las credenciales que te entregó Wilmar Colorado Arenas para tu empresa.</div>
+  <label for="loginUser">Usuario</label>
+  <input type="text" id="loginUser" placeholder="usuario" autocapitalize="none">
+  <label for="loginPass">Contraseña</label>
+  <input type="password" id="loginPass" placeholder="••••••••">
+  <button class="btn-primary" id="loginBtn">Ingresar</button>
+  <div class="license-terms">
+    © 2026 Wilmar Colorado Arenas. Todos los derechos reservados. Este software es propiedad exclusiva del autor y se entrega como servicio bajo licencia. Queda prohibida su copia, distribución, ingeniería inversa o explotación sin autorización previa y por escrito.
+  </div>
+</div>
+
+<div class="overlay-screen hidden" id="pinScreen">
+  <div class="lock-icon">🔒</div>
+  <div class="status-title" style="margin-bottom:6px;">Panel de administración</div>
+  <div class="status-sub" style="margin-bottom:20px;" id="pinHint">Ingresá el PIN para continuar</div>
+  <input type="password" id="pinInput" placeholder="PIN">
+  <button class="btn-primary" id="pinBtn">Ingresar</button>
+  <button class="btn-secondary" style="margin-top:10px;" id="pinCancelBtn">Volver a Fichar</button>
+</div>
+
+<div class="overlay-screen" id="loadingScreen">
+  <div class="loading-line">
+    <div class="spinner"></div>
+    <div>Cargando modelos de reconocimiento facial…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
