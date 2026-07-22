@@ -44,7 +44,7 @@
     --font-mono:'JetBrains Mono',monospace;
   }
   *{box-sizing:border-box;}
-  html,body{height:100%;}
+  html,body{height:100%; height:100dvh;}
   body{
     margin:0;
     background:radial-gradient(circle at 50% -10%, #1B2836 0%, #0F1720 55%);
@@ -56,10 +56,10 @@
   #app{
     max-width:480px;
     margin:0 auto;
-    min-height:100vh;
+    min-height:100dvh;
     display:flex;
     flex-direction:column;
-    padding:0 0 90px 0;
+    padding:0;
   }
   .topbar{
     display:flex;
@@ -136,8 +136,12 @@
   .capture-dots{ display:flex; gap:6px; justify-content:center; margin:10px 0; }
   .capture-dots span{ width:8px; height:8px; border-radius:50%; background:var(--border); }
   .capture-dots span.done{ background:var(--accent-entrada); }
+  .bottomsafe{
+    position:sticky; bottom:0; left:0; right:0; max-width:480px; margin:0 auto; z-index:20;
+    background:var(--bg);
+  }
   .bottomnav{
-    position:fixed; left:0; right:0; bottom:0; max-width:480px; margin:0 auto; display:flex;
+    display:flex;
     background:rgba(22,32,43,.92); backdrop-filter:blur(10px); border-top:1px solid var(--border);
     padding:10px 22px calc(10px + env(safe-area-inset-bottom));
   }
@@ -152,9 +156,13 @@
   .toast{ position:fixed; left:50%; bottom:100px; transform:translateX(-50%); background:var(--surface-2); border:1px solid var(--border); padding:10px 16px; border-radius:999px; font-size:13px; opacity:0; transition:opacity .25s ease; z-index:60; max-width:90%; text-align:center; }
   .toast.show{ opacity:1; }
   .legal-footer{
-    position:fixed; left:0; right:0; bottom:64px; max-width:480px; margin:0 auto; text-align:center;
-    font-family:var(--font-mono); font-size:9px; letter-spacing:.02em; color:var(--text-muted); opacity:.55;
-    padding:4px 22px; pointer-events:none; z-index:10;
+    text-align:center;
+    font-family:var(--font-mono);
+    font-size:9px;
+    letter-spacing:.02em;
+    color:var(--text-muted);
+    opacity:.55;
+    padding:6px 22px 2px 22px;
   }
   .license-terms{ font-size:11px; color:var(--text-muted); line-height:1.5; margin:14px 0 6px 0; text-align:left; border-top:1px solid var(--border); padding-top:14px; }
 </style>
@@ -217,17 +225,19 @@
     </div>
   </div>
 
-  <div class="legal-footer">PresencIA © 2026 Wilmar Colorado Arenas · Servicio bajo licencia · Prohibida su copia o distribución sin autorización escrita</div>
+  <div class="bottomsafe">
+    <div class="legal-footer">PresencIA © 2026 Wilmar Colorado Arenas · Servicio bajo licencia · Prohibida su copia o distribución sin autorización escrita</div>
 
-  <div class="bottomnav">
-    <button class="navbtn active" data-view="fichar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-      Fichar
-    </button>
-    <button class="navbtn" data-view="admin">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.2.63.77 1.05 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      Admin
-    </button>
+    <div class="bottomnav">
+      <button class="navbtn active" data-view="fichar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Fichar
+      </button>
+      <button class="navbtn" data-view="admin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.2.63.77 1.05 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Admin
+      </button>
+    </div>
   </div>
 </div>
 
