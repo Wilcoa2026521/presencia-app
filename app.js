@@ -15,7 +15,7 @@
 // IMPORTANTE (solo lo edita Wilmar antes de publicar la app):
 // pegá acá la URL de tu implementación de Google Apps Script.
 // Los clientes finales nunca necesitan ver ni tocar este valor.
-const SCRIPT_URL = "Phttps://script.google.com/macros/s/AKfycbw6ckUDPJIfYpstXW642wvpgDNu7pDxlImI1NnbymJeXEbsUB5J157bbl5G5oBAWC5w_A/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6ckUDPJIfYpstXW642wvpgDNu7pDxlImI1NnbymJeXEbsUB5J157bbl5G5oBAWC5w_A/exec";
 
 const COOLDOWN_MS = 60 * 1000;
 const CONFIRM_FRAMES = 3;
